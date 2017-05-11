@@ -183,7 +183,7 @@ def train_model(exp_id,
           exp_logger.log_learn_rate(niter, m.lr.eval())
 
       test_iter.reset()
-      acc = evaluate(test_iter, -1)
+      acc = evaluate(sess, mvalid, test_iter)
   return acc
 
 
