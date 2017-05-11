@@ -32,6 +32,7 @@ import tensorflow as tf
 
 from resnet.models import nnlib as nn
 from resnet.utils import logger
+import custom_grads
 
 log = logger.get()
 
