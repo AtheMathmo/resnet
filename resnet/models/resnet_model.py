@@ -77,6 +77,8 @@ class ResNetModel(object):
       cost = xent
       cost += self._decay()
       cost += self._l1_loss()
+      if config.jac_reg is not None:
+        cost += config.jac_reg * self.stochastic_jac_loss(x, logits)
 
     self._cost = cost
     self._input = x
@@ -330,6 +332,16 @@ class ResNetModel(object):
     else:
       log.warning("No L1 loss variables!")
       return 0.0
+
+  def stochastic_jac_loss(self, inputs, logits):
+    spher_noise = tf.random_normal(tf.shape(logits))
+    y_hat = tf.reduce_sum(logits * spher_noise, axis=1)
+
+    # This is a matrix where each row is (J^T e_i)
+    jac_noise = tf.gradients(y_hat, inputs)[0]
+
+    # Compute Monte Carlo approximation to the expected value
+    return tf.reduce_mean(tf.reduce_sum(tf.square(jac_noise), axis=0))
 
   def _conv(self, name, x, filter_size, in_filters, out_filters, strides):
     """Convolution."""

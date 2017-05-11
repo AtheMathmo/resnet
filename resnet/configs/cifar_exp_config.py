@@ -65,6 +65,8 @@ class ResNet32Config(object):
     self.div255 = True
     self.seed = 0
 
+    self.jac_reg = None
+
   def to_json(self):
     return json.dumps(self, default=lambda o: o.__dict__)
 
