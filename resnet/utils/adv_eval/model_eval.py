@@ -2,7 +2,7 @@ import tensorflow as tf
 import sys
 import numpy as np
 
-sys.path.append('../../../cleverhans')
+sys.path.append('./cleverhans')
 from cleverhans.attacks_tf import fgsm
 import matplotlib.pyplot as plt
 
