@@ -19,6 +19,7 @@ flags.DEFINE_string("dataset", "cifar-10", "Dataset name.")
 flags.DEFINE_string("results", "./results/cifar", "Saving folder")
 flags.DEFINE_string("logs", "./logs/public", "Logging folder")
 flags.DEFINE_string("config", None, "Custom JSON config file")
+flags.DEFINE_string("model", "resnet-32", "Model type.")
 FLAGS = tf.flags.FLAGS
 log = logger.get()
 
