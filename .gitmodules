@@ -1,3 +1,6 @@
 [submodule "pyschedlib"]
 	path = pyschedlib
 	url = git@github.com:renmengye/pyschedlib.git
+[submodule "cleverhans"]
+	path = cleverhans
+	url = https://github.com/openai/cleverhans.git
