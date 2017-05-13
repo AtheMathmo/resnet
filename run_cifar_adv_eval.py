@@ -87,6 +87,33 @@ def eval_model(config, train_data, test_data, save_folder, logs_folder=None):
       exp_logger.log_valid_acc(niter, val_acc)
     return val_acc
 
+def only_adv_eval(config, train_data, test_data, save_folder, logs_folder=None):
+    log.info("Config: {}".format(config.__dict__))
+
+    with tf.Graph().as_default():
+        np.random.seed(0)
+        tf.set_random_seed(1234)
+        exp_logger = ExperimentLogger(logs_folder)
+
+        # Builds models.
+        log.info("Building models")
+        mvalid = get_model(config)
+
+        # # A hack to load compatible models.
+        # variables = tf.global_variables()
+        # names = map(lambda x: x.name, variables)
+        # names = map(lambda x: x.replace("Model/", "Model/Towers/"), names)
+        # names = map(lambda x: x.replace(":0", ""), names)
+        # var_dict = dict(zip(names, variables))
+
+        # Initializes variables.
+        with tf.Session() as sess:
+            # saver = tf.train.Saver(var_dict)
+            saver = tf.train.Saver()
+            ckpt = tf.train.latest_checkpoint(save_folder)
+            # log.fatal(ckpt)
+            saver.restore(sess, ckpt)
+            adv_eval(sess, mvalid, test_data)
 
 def main():
   config = _get_config()
@@ -116,8 +143,8 @@ def main():
       prefetch=False)
 
   # Evaluates a model.
-  eval_model(config, train_data, test_data, save_folder, logs_folder)
-  adv_eval()
+  #eval_model(config, train_data, test_data, save_folder, logs_folder)
+  only_adv_eval(config, train_data, test_data, save_folder, logs_folder)
 
 
 if __name__ == "__main__":
