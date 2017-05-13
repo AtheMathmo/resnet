@@ -6,6 +6,8 @@ sys.path.append('./cleverhans')
 from cleverhans.attacks_tf import fgsm
 import matplotlib.pyplot as plt
 
+from tqdm import tqdm
+
 from universal_pert import universal_perturbation
 
 def permute_labels(labels):
@@ -21,7 +23,8 @@ def fgs_eval(sess, model, data_iter, fgs_eps):
     '''
     untarget_num_correct = 0.0
     untarget_count = 0
-    for batch in data_iter:
+    iter_ = tqdm(data_iter)
+    for batch in iter_:
         # Try to perturb with cleverhans (untargeted)
         perturbed_imgs_fgs = sess.run(
             fgsm(model.input, model.output, fgs_eps, 0.0, 1.0), {
