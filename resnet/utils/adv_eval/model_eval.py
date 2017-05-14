@@ -24,7 +24,7 @@ def fgs_eval(sess, model, data_iter, fgs_eps):
     untarget_num_correct = 0.0
     untarget_count = 0
     iter_ = tqdm(data_iter)
-    fgsm_attack = fgsm(model.input, model.output, fgs_eps, 0.0, 1.0)
+    fgsm_attack = fgsm(model.input, model.output, fgs_eps, 0.0, 255.0)
     for batch in iter_:
         # Try to perturb with cleverhans (untargeted)
         perturbed_imgs_fgs = sess.run(fgsm_attack, {

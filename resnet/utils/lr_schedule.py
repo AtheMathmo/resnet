@@ -8,7 +8,6 @@ from resnet.utils import logger
 
 log = logger.get()
 
-
 class FixedLearnRateScheduler(object):
   """Adjusts learning rate according to a fixed schedule."""
 

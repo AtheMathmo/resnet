@@ -12,6 +12,8 @@ def get_config(dataset, model):
     config = ResNet110Config()
   elif model == "resnet-164":
     config = ResNet164Config()
+  elif model == "resnet-32-adam":
+    config = ResNet32AdamConfig()
   else:
     raise Exception("Unknown model \"{}\"".format(model))
   if dataset == "cifar-10":
@@ -94,6 +96,13 @@ class ResNet164Config(ResNet32Config):
     self.use_bottleneck = True
     self.model = "resnet-164"
 
+class ResNet32AdamConfig(ResNet32Config):
+    def __init__(self):
+      super(ResNet32FixedLRConfig, self).__init__()
+      self.base_learn_rate = 1e-3
+      self.optimizer = "adam"
+      self.lr_decay_steps = []
+      self.l2_list = []
 
 def get_config_from_json(path):
   return ResNet32Config.from_json(open(path, "r").read())

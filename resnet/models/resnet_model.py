@@ -98,6 +98,8 @@ class ResNetModel(object):
       optimizer = tf.train.GradientDescentOptimizer(lr)
     elif config.optimizer == "mom":
       optimizer = tf.train.MomentumOptimizer(lr, 0.9)
+    elif config.optimizer == "adam":
+      optimizer = tf.train.AdamOptimizer(lr)
     train_op = optimizer.apply_gradients(
         zip(grads, trainable_variables),
         global_step=global_step,
