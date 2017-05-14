@@ -98,7 +98,7 @@ class ResNet164Config(ResNet32Config):
 
 class ResNet32AdamConfig(ResNet32Config):
     def __init__(self):
-      super(ResNet32FixedLRConfig, self).__init__()
+      super(ResNet32AdamConfig, self).__init__()
       self.base_learn_rate = 1e-3
       self.optimizer = "adam"
       self.lr_decay_steps = []
