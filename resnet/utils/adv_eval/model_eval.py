@@ -12,10 +12,10 @@ from universal_pert import universal_perturbation
 
 def permute_labels(labels):
     true_labels = labels #np.argmax(labels, axis=1)
-    adv_labels = (true_labels - 1) % 10
-    one_hot = np.zeros(labels.shape)
-    one_hot[np.arange(labels.shape[0]), adv_labels] = 1.0
-    return one_hot
+    return (true_labels - 1) % 10
+    # one_hot = np.zeros(labels.shape)
+    # one_hot[np.arange(labels.shape[0]), adv_labels] = 1.0
+    # return one_hot
 
 def target_fgs_attack(model, fgs_eps, clip_min, clip_max):
     adv_ce = tf.reduce_mean(
