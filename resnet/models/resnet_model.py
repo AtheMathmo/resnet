@@ -358,7 +358,7 @@ class ResNetModel(object):
     return tf.reduce_mean(tf.reduce_sum(tf.square(jac_noise), axis=0))
 
   def dbp_loss(self, inputs, labels, logits):
-    one_hot_labels = tf.nn.one_hot(labels, config.num_classes)
+    one_hot_labels = tf.one_hot(labels, self.config.num_classes)
     ce = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits))
     loss_deriv = tf.gradients(ce, inputs)[0]
     return tf.reduce_mean(tf.reduce_sum(tf.square(loss_deriv), axis=1))
