@@ -83,6 +83,7 @@ def deepfool_eval(model, imgs, delta=0.2):
 
 def adv_eval(sess, model, data_iter, eps_range=[0.1], logger=None):
     for fgs_eps in eps_range:
+        data_iter.reset()
         untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, fgs_eps)
 
         if logger is not None:
