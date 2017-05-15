@@ -29,6 +29,7 @@ def fgs_eval(sess, model, data_iter, fgs_eps):
     '''
     untarget_num_correct = 0.0
     target_num_correct = 0.0
+    target_atk_success = 0.0
     total_count = 0
     iter_ = tqdm(data_iter)
     fgsm_attack = fgsm(model.input, model.output, fgs_eps, 0.0, 255.0)
@@ -55,7 +56,7 @@ def fgs_eval(sess, model, data_iter, fgs_eps):
         untarget_num_correct += np.sum(np.equal(untarget_pred_label, batch["label"]).astype(float))
         target_num_correct += np.sum(np.equal(target_pred_label, batch["label"]).astype(float))
         target_atk_success += np.sum(np.equal(target_pred_label, target_labels).astype(float))
-        total_count += pred_label.size
+        total_count += untarget_pred_label.size
     untargeted_pred_acc = (untarget_num_correct / total_count)
     targeted_pred_acc = (target_num_correct / total_count)
     targeted_success_rate = (target_atk_success / total_count)
