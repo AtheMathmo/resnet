@@ -88,3 +88,25 @@ class ExperimentLogger():
       with open(self.lr_file_name, "a") as f:
         f.write("{:d},{:s},{:e}\n".format(
             niter + 1, datetime.datetime.now().isoformat(), lr))
+
+class AdvLogger():
+
+    def __init__(self, logs_folder):
+      self._write_to_csv = logs_folder is not None
+
+      if self._write_to_csv:
+          self.adv_atk_filename = os.path.join(logs_folder, 'adv_atk_stats.csv')
+
+          if not os.path.isdir(logs_folder):
+              os.makedirs(logs_folder)
+
+          if not os.path.exists(self.adv_atk_filename):
+              with open(self.adv_atk_filename, "w") as f:
+                  f.write("eps,untarget_acc,target_acc,target_atk_success\n")
+
+    def log_adv_stats(self, eps, untarget_acc, target_acc, target_atk_success):
+        with open(self.adv_atk_filename, "a") as f:
+          f.write("{},{},{},{}\n".format(
+              eps, untarget_acc, target_acc, target_atk_success
+          ))
+

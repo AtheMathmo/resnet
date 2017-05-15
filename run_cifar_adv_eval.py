@@ -10,7 +10,7 @@ from tqdm import tqdm
 from resnet.configs.cifar_exp_config import get_config, get_config_from_json
 from resnet.data import get_dataset
 from resnet.models import ResNetModel
-from resnet.utils import ExperimentLogger, logger
+from resnet.utils import ExperimentLogger, AdvLogger, logger
 from resnet.utils.adv_eval.model_eval import adv_eval
 
 flags = tf.flags
@@ -56,6 +56,7 @@ def eval_model(config, train_data, test_data, save_folder, logs_folder=None):
     np.random.seed(0)
     tf.set_random_seed(1234)
     exp_logger = ExperimentLogger(logs_folder)
+    adv_logger = AdvLogger(logs_folder)
 
     # Builds models.
     log.info("Building models")
@@ -80,7 +81,7 @@ def eval_model(config, train_data, test_data, save_folder, logs_folder=None):
 
       # evaluate adversarial robustness
       test_data.reset()
-      adv_eval(sess, mvalid, test_data)
+      adv_eval(sess, mvalid, test_data, logger=adv_logger)
 
       niter = int(ckpt.split("-")[-1])
       exp_logger.log_train_acc(niter, train_acc)
@@ -89,6 +90,7 @@ def eval_model(config, train_data, test_data, save_folder, logs_folder=None):
 
 def only_adv_eval(config, train_data, test_data, save_folder, logs_folder=None):
     log.info("Config: {}".format(config.__dict__))
+    adv_logger = AdvLogger(logs_folder)
 
     with tf.Graph().as_default():
         np.random.seed(0)
@@ -113,7 +115,7 @@ def only_adv_eval(config, train_data, test_data, save_folder, logs_folder=None):
             ckpt = tf.train.latest_checkpoint(save_folder)
             # log.fatal(ckpt)
             saver.restore(sess, ckpt)
-            adv_eval(sess, mvalid, test_data)
+            adv_eval(sess, mvalid, test_data, logger=adv_logger)
 
 def main():
   config = _get_config()
