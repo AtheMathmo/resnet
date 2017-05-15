@@ -79,7 +79,13 @@ class ResNetModel(object):
       cost += self._decay()
       cost += self._l1_loss()
       if config.jac_reg is not None:
-        cost += config.jac_reg * self.stochastic_jac_loss(x, logits)
+        if config.reg_type == 'stoch':
+          cost += config.jac_reg * self.stochastic_jac_loss(x, logits)
+        elif config.reg_type == 'dbp':
+          cost += config.jac_reg * self.dbp_loss(x, xent)
+        else:
+          log.fatal('Unknown regularization type: {}'.format(config.reg_type))
+          raise Exception('Unknown regularization type: {}. Must be "stoch" or "dbp".'.format(config.reg_type))
 
     self._cost = cost
     self._input = x
@@ -350,6 +356,10 @@ class ResNetModel(object):
 
     # Compute Monte Carlo approximation to the expected value
     return tf.reduce_mean(tf.reduce_sum(tf.square(jac_noise), axis=0))
+
+  def dbp_loss(self, inputs, ce):
+    loss_deriv = tf.gradients(ce, inputs)[0]
+    return tf.reduce_mean(tf.reduce_sum(tf.square(loss_deriv), axis=1))
 
   def _conv(self, name, x, filter_size, in_filters, out_filters, strides):
     """Convolution."""

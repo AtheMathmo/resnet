@@ -68,6 +68,7 @@ class ResNet32Config(object):
     self.seed = 0
 
     self.jac_reg = None
+    self.reg_type = 'stoch'
 
   def to_json(self):
     return json.dumps(self, default=lambda o: o.__dict__)

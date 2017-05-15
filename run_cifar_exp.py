@@ -50,6 +50,8 @@ flags.DEFINE_string("id", None, "Experiment ID.")
 flags.DEFINE_string("results", "./results/cifar", "Saving folder.")
 flags.DEFINE_string("logs", "./logs/public", "Logging folder.")
 flags.DEFINE_string("model", "resnet-32", "Model type.")
+flags.DEFINE_float("jac_reg", None, "Jac regularization scale")
+flags.DEFINE_string("reg_type", "stoch", "Jac regularization type")
 flags.DEFINE_bool("validation", False, "Whether run validation set.")
 FLAGS = flags.FLAGS
 
@@ -57,9 +59,12 @@ FLAGS = flags.FLAGS
 def _get_config():
   # Manually set config.
   if FLAGS.config is not None:
-    return get_config_from_json(FLAGS.config)
+    config = get_config_from_json(FLAGS.config)
   else:
-    return get_config(FLAGS.dataset, FLAGS.model)
+    config = get_config(FLAGS.dataset, FLAGS.model)
+  config.jac_reg = FLAGS.jac_reg
+  config.reg_type = FLAGS.reg_type
+  return config
 
 
 def train_step(sess, model, batch):
@@ -200,8 +205,9 @@ def main():
     test_str = "test"
 
   if FLAGS.id is None:
-    exp_id = "exp_" + FLAGS.dataset + "_" + FLAGS.model
-    exp_id = gen_id(exp_id)
+    # exp_id = "exp_" + FLAGS.dataset + "_" + FLAGS.model
+    # exp_id = gen_id(exp_id)
+    exp_id = "{}_{}_{}_{}".format(FLAGS.model, FLAGS.dataset, FLAGS.reg_type, FLAGS.jac_reg)
   else:
     exp_id = FLAGS.id
 
