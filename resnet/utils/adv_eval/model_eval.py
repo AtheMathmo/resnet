@@ -11,32 +11,54 @@ from tqdm import tqdm
 from universal_pert import universal_perturbation
 
 def permute_labels(labels):
-    true_labels = np.argmax(labels, axis=1)
+    true_labels = labels #np.argmax(labels, axis=1)
     adv_labels = (true_labels - 1) % 10
     one_hot = np.zeros(labels.shape)
     one_hot[np.arange(labels.shape[0]), adv_labels] = 1.0
     return one_hot
+
+def target_fgs_attack(model, fgs_eps, clip_min, clip_max):
+    adv_ce = tf.reduce_mean(
+        tf.nn.softmax_cross_entropy_with_logits(labels=model.label, logits=model.output))
+    input_grad = tf.gradients(adv_ce, model.input)[0]
+    return tf.clip_by_value(model.input - fgs_eps * tf.sign(input_grad), clip_min, clip_max)
 
 def fgs_eval(sess, model, data_iter, fgs_eps):
     '''
     Returns (untargeted_fgs_acc, targeted_fgs_acc)
     '''
     untarget_num_correct = 0.0
-    untarget_count = 0
+    target_num_correct = 0.0
+    total_count = 0
     iter_ = tqdm(data_iter)
     fgsm_attack = fgsm(model.input, model.output, fgs_eps, 0.0, 255.0)
+    targeted_fgsm_attack = target_fgs_attack(model, fgs_eps, 0.0, 255.0)
+
     for batch in iter_:
+        target_labels = permute_labels(batch["label"])
         # Try to perturb with cleverhans (untargeted)
         perturbed_imgs_fgs = sess.run(fgsm_attack, {
             model.input: batch["img"]
         })
-        y = sess.run(model.output, {
+        targeted_fgs_imgs = sess.run(targeted_fgsm_attack, {
+            model.input: batch["img"],
+            model.label: target_labels
+        })
+        y_untarget = sess.run(model.output, {
             model.input: perturbed_imgs_fgs
         })
-        pred_label = np.argmax(y, axis=1)
-        untarget_num_correct += np.sum(np.equal(pred_label, batch["label"]).astype(float))
-        untarget_count += pred_label.size
-    untargeted_pred_acc = (untarget_num_correct / untarget_count)
+        y_targeted = sess.run(model.output, {
+            model.input: targeted_fgs_imgs
+        })
+        untarget_pred_label = np.argmax(y_untarget, axis=1)
+        target_pred_label = np.argmax(y_targeted, axis=1)
+        untarget_num_correct += np.sum(np.equal(untarget_pred_label, batch["label"]).astype(float))
+        target_num_correct += np.sum(np.equal(target_pred_label, batch["label"]).astype(float))
+        target_atk_success += np.sum(np.equal(target_pred_label, target_labels).astype(float))
+        total_count += pred_label.size
+    untargeted_pred_acc = (untarget_num_correct / total_count)
+    targeted_pred_acc = (target_num_correct / total_count)
+    targeted_success_rate = (target_atk_success / total_count)
 
     # Here we generate targeted adversarial attacks
     # target_perturbed_imgs_fgs = model.perturb_inputs_fgs(fgs_eps, imgs, target_labels)
