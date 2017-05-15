@@ -81,20 +81,14 @@ def deepfool_eval(model, imgs, delta=0.2):
 
     v = universal_perturbation(imgs, f, f_grad, delta=delta)
 
-def adv_eval(sess, model, data_iter, fgs_eps=0.1, logger=None):
-    untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, fgs_eps)
+def adv_eval(sess, model, data_iter, eps_range=[0.1], logger=None):
+    for fgs_eps in eps_range:
+        untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, fgs_eps)
 
-    if logger is not None:
-        logger.log_adv_stats(fgs_eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
+        if logger is not None:
+            logger.log_adv_stats(fgs_eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
 
-    # Pick some image and plot its true vs the cleverhans adversary
-    # img_idx = 0
-    # all_im = np.concatenate((correct_pred_imgs[img_idx].reshape((32,32,3)),
-    #                          perturbed_imgs_fgs[img_idx].reshape((32,32,3))),
-    #                          axis=1)
-    # plt.imshow(all_im, cmap='gray')
-    # plt.show()
-
-    print("Untargeted FGS pred acc: ", untarget_fgs_acc)
-    print("Targeted FGS pred acc:", targeted_pred_acc)
-    print("Targeted FGS attack success:", targeted_success_rate)
+        print("------- For eps = {} -------".format(fgs_eps))
+        print("Untargeted FGS pred acc: ", untarget_fgs_acc)
+        print("Targeted FGS pred acc:", targeted_pred_acc)
+        print("Targeted FGS attack success:", targeted_success_rate)

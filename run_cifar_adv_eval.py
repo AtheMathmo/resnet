@@ -115,7 +115,7 @@ def only_adv_eval(config, train_data, test_data, save_folder, logs_folder=None):
             ckpt = tf.train.latest_checkpoint(save_folder)
             # log.fatal(ckpt)
             saver.restore(sess, ckpt)
-            adv_eval(sess, mvalid, test_data, logger=adv_logger)
+            adv_eval(sess, mvalid, test_data, eps_range=[1e-3,1e-2,1e-1,1.0,10.0], logger=adv_logger)
 
 def main():
   config = _get_config()
