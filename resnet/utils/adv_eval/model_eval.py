@@ -19,7 +19,7 @@ def permute_labels(labels):
 
 def target_fgs_attack(model, fgs_eps, clip_min, clip_max):
     adv_ce = tf.reduce_mean(
-        tf.nn.softmax_cross_entropy_with_logits(labels=model.label, logits=model.output))
+        tf.nn.sparse_softmax_cross_entropy_with_logits(labels=model.label, logits=model.logits))
     input_grad = tf.gradients(adv_ce, model.input)[0]
     return tf.clip_by_value(model.input - fgs_eps * tf.sign(input_grad), clip_min, clip_max)
 

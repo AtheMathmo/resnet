@@ -86,6 +86,7 @@ class ResNetModel(object):
     self._label = y
     self._cross_ent = xent
     self._output = predictions
+    self._logits = logits
 
     if not is_training or inference_only:
       return
@@ -143,6 +144,10 @@ class ResNetModel(object):
   @property
   def label(self):
     return self._label
+
+  @property
+  def logits(self):
+    return self._logits
 
   @property
   def cross_ent(self):
