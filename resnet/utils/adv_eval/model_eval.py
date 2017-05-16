@@ -21,7 +21,7 @@ def target_fgs_attack(model, fgs_eps, clip_min, clip_max):
     adv_ce = tf.reduce_mean(
         tf.nn.sparse_softmax_cross_entropy_with_logits(labels=model.label, logits=model.logits))
     input_grad = tf.gradients(adv_ce, model.input)[0]
-    return tf.clip_by_value(model.input - fgs_eps * tf.sign(input_grad), clip_min, clip_max)
+    return model.input - fgs_eps * tf.sign(input_grad)
 
 def fgs_eval(sess, model, data_iter, fgs_eps):
     '''
@@ -32,7 +32,7 @@ def fgs_eval(sess, model, data_iter, fgs_eps):
     target_atk_success = 0.0
     total_count = 0
     iter_ = tqdm(data_iter)
-    fgsm_attack = fgsm(model.input, model.output, fgs_eps, 0.0, 255.0)
+    fgsm_attack = fgsm(model.input, model.output, fgs_eps)
     targeted_fgsm_attack = target_fgs_attack(model, fgs_eps, 0.0, 255.0)
 
     for batch in iter_:
