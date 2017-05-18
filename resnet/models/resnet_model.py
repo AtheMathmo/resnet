@@ -83,6 +83,8 @@ class ResNetModel(object):
           cost += config.jac_reg * self.stochastic_jac_loss(x, logits)
         elif config.reg_type == 'dbp':
           cost += config.jac_reg * self.dbp_loss(x, y, logits)
+        elif config.reg_type == 'stoch_softmax':
+          cost += config.jac_reg * self.dbp_loss(x, y, predictions)
         else:
           log.fatal('Unknown regularization type: {}'.format(config.reg_type))
           raise Exception('Unknown regularization type: {}. Must be "stoch" or "dbp".'.format(config.reg_type))
@@ -362,6 +364,19 @@ class ResNetModel(object):
     ce = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits))
     loss_deriv = tf.gradients(ce, inputs)[0]
     return tf.reduce_mean(tf.reduce_sum(tf.square(loss_deriv), axis=1))
+
+  def autodiff_jacobian_norm(self):
+        '''
+        Computes the Jacobian Frobenius norm squared averaged over all inputs:
+
+            MEAN_i(SUM_{j,k} J_j,k(y_i,j, x_i,k)^2)
+
+        Must stack and unstack across dimensions to use reverse accumulation.
+        '''
+        jac_parts = [tf.gradients(yi, self.input_tensor)[0] \
+                for yi in tf.unstack(self.model_output, axis=1)]
+        jacs_sq_mean = tf.reduce_mean(tf.square(tf.add_n(jac_parts)), axis=0)
+        return tf.reduce_sum(jacs_sq_mean)
 
   def _conv(self, name, x, filter_size, in_filters, out_filters, strides):
     """Convolution."""
