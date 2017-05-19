@@ -97,7 +97,7 @@ def adv_eval(sess, model, data_iter, eps_range=[0.1], logger=None):
     for norm in [np.inf, 1, 2]:
         for fgs_eps in eps_range:
             data_iter.reset()
-            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, fgs_eps)
+            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, fgs_eps, norm)
 
             if logger is not None:
                 logger.log_adv_stats(norm, fgs_eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
