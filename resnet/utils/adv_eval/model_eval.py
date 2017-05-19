@@ -107,5 +107,5 @@ def adv_eval(sess, model, data_iter, eps_range=[0.1], logger=None):
         print("Targeted FGS attack success:", targeted_success_rate)
 
     data_iter.reset()
-    res = data_iter.get_fn(0)
+    res = data_iter.get_fn(np.arange(100))
     print(eval_jacobian_things(sess, model, res["img"], res["label"]))
