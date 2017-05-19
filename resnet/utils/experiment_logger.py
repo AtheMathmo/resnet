@@ -102,11 +102,11 @@ class AdvLogger():
 
           if not os.path.exists(self.adv_atk_filename):
               with open(self.adv_atk_filename, "w") as f:
-                  f.write("eps,untarget_acc,target_acc,target_atk_success\n")
+                  f.write("eps,untarget_acc,target_acc,target_atk_success,norm\n")
 
-    def log_adv_stats(self, eps, untarget_acc, target_acc, target_atk_success):
+    def log_adv_stats(self, norm, eps, untarget_acc, target_acc, target_atk_success):
         with open(self.adv_atk_filename, "a") as f:
-          f.write("{},{},{},{}\n".format(
-              eps, untarget_acc, target_acc, target_atk_success
+          f.write("{},{},{},{},{}\n".format(
+              eps, untarget_acc, target_acc, target_atk_success, norm
           ))
 

@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 sys.path.append('./cleverhans')
-from cleverhans.attacks_tf import fgsm
+from cleverhans.attacks_tf import fgsm, fgm
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
@@ -23,7 +23,7 @@ def target_fgs_attack(model, fgs_eps, clip_min, clip_max):
     input_grad = tf.gradients(adv_ce, model.input)[0]
     return model.input - fgs_eps * tf.sign(input_grad)
 
-def fgs_eval(sess, model, data_iter, fgs_eps):
+def fgs_eval(sess, model, data_iter, fgs_eps, norm=np.inf):
     '''
     Returns (untargeted_fgs_acc, targeted_fgs_acc)
     '''
@@ -32,7 +32,7 @@ def fgs_eval(sess, model, data_iter, fgs_eps):
     target_atk_success = 0.0
     total_count = 0
     iter_ = tqdm(data_iter)
-    fgsm_attack = fgsm(model.input, model.output, fgs_eps)
+    fgsm_attack = fgm(model.input, model.output, eps=fgs_eps, ord=norm)
     targeted_fgsm_attack = target_fgs_attack(model, fgs_eps, 0.0, 255.0)
 
     for batch in iter_:
@@ -94,17 +94,18 @@ def eval_jacobian_things(sess, model, imgs, targets):
     return logit_jac_norm, dbp_norm
 
 def adv_eval(sess, model, data_iter, eps_range=[0.1], logger=None):
-    for fgs_eps in eps_range:
-        data_iter.reset()
-        untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, fgs_eps)
+    for norm in [np.inf, 1, 2]:
+        for fgs_eps in eps_range:
+            data_iter.reset()
+            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, fgs_eps)
 
-        if logger is not None:
-            logger.log_adv_stats(fgs_eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
+            if logger is not None:
+                logger.log_adv_stats(norm, fgs_eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
 
-        print("------- For eps = {} -------".format(fgs_eps))
-        print("Untargeted FGS pred acc: ", untarget_fgs_acc)
-        print("Targeted FGS pred acc:", targeted_pred_acc)
-        print("Targeted FGS attack success:", targeted_success_rate)
+            print("------- For norm = {}, eps = {} -------".format(norm, fgs_eps))
+            print("Untargeted FGS pred acc: ", untarget_fgs_acc)
+            print("Targeted FGS pred acc:", targeted_pred_acc)
+            print("Targeted FGS attack success:", targeted_success_rate)
 
     data_iter.reset()
     res = data_iter.get_fn(np.arange(100))
