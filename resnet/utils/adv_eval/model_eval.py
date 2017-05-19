@@ -81,6 +81,18 @@ def deepfool_eval(model, imgs, delta=0.2):
 
     v = universal_perturbation(imgs, f, f_grad, delta=delta)
 
+def eval_jacobian_things(sess, model, imgs, targets):
+    logit_jac_norm = sess.run(model.true_jac_norm, {
+        model.input: imgs
+    })
+
+    dbp_norm = sess.run(model.dbp_loss_norm, {
+        model.input: imgs,
+        model.label: targets
+    })
+
+    return logit_jac_norm, dbp_norm
+
 def adv_eval(sess, model, data_iter, eps_range=[0.1], logger=None):
     for fgs_eps in eps_range:
         data_iter.reset()
@@ -93,3 +105,7 @@ def adv_eval(sess, model, data_iter, eps_range=[0.1], logger=None):
         print("Untargeted FGS pred acc: ", untarget_fgs_acc)
         print("Targeted FGS pred acc:", targeted_pred_acc)
         print("Targeted FGS attack success:", targeted_success_rate)
+
+    data_iter.reset()
+    res = data_iter.get_fn(0)
+    print(eval_jacobian_things(sess, model, res["img"], res["label"]))
