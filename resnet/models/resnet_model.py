@@ -72,6 +72,9 @@ class ResNetModel(object):
     logits = self.build_inference_network(x)
     predictions = tf.nn.softmax(logits)
 
+    self.true_jac_norm = self.autodiff_jacobian_norm(x, logits)
+    self.dbp_loss_norm = self.dbp_loss(x, y, logits)
+
     with tf.variable_scope("costs"):
       xent = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels= y)
       xent = tf.reduce_sum(xent, name="xent") / tf.to_float(tf.shape(x)[0])
@@ -82,12 +85,14 @@ class ResNetModel(object):
         if config.reg_type == 'stoch':
           cost += config.jac_reg * self.stochastic_jac_loss(x, logits)
         elif config.reg_type == 'dbp':
-          cost += config.jac_reg * self.dbp_loss(x, y, logits)
+          cost += config.jac_reg * self.dbp_loss_norm
         elif config.reg_type == 'stoch_softmax':
-          cost += config.jac_reg * self.dbp_loss(x, y, predictions)
+          cost += config.jac_reg * self.stochastic_jac_loss(x, predictions)
         else:
           log.fatal('Unknown regularization type: {}'.format(config.reg_type))
           raise Exception('Unknown regularization type: {}. Must be "stoch" or "dbp".'.format(config.reg_type))
+    
+    
 
     self._cost = cost
     self._input = x
@@ -365,7 +370,7 @@ class ResNetModel(object):
     loss_deriv = tf.gradients(ce, inputs)[0]
     return tf.reduce_mean(tf.reduce_sum(tf.square(loss_deriv), axis=1))
 
-  def autodiff_jacobian_norm(self):
+  def autodiff_jacobian_norm(self, inputs, logits):
         '''
         Computes the Jacobian Frobenius norm squared averaged over all inputs:
 
@@ -373,9 +378,10 @@ class ResNetModel(object):
 
         Must stack and unstack across dimensions to use reverse accumulation.
         '''
-        jac_parts = [tf.gradients(yi, self.input_tensor)[0] \
-                for yi in tf.unstack(self.model_output, axis=1)]
-        jacs_sq_mean = tf.reduce_mean(tf.square(tf.add_n(jac_parts)), axis=0)
+        jac_parts = [tf.square(tf.gradients(yi, inputs)[0]) \
+                for yi in tf.unstack(logits, axis=1)]
+
+        jacs_sq_mean = tf.reduce_mean(tf.add_n(jac_parts), axis=0)
         return tf.reduce_sum(jacs_sq_mean)
 
   def _conv(self, name, x, filter_size, in_filters, out_filters, strides):
