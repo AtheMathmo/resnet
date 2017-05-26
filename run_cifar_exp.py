@@ -229,7 +229,7 @@ def main():
 
   # Configures dataset objects.
   log.info("Building dataset")
-  train_data = get_dataset(FLAGS.dataset, train_str)
+  train_data = get_dataset(FLAGS.dataset, train_str, data_aug=config.data_aug)
   trainval_data = get_dataset(
       FLAGS.dataset,
       train_str,
