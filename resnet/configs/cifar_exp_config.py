@@ -109,7 +109,7 @@ class ResNet32AdamConfig(ResNet32Config):
 
 class ResNet32BaseRegConfig(ResNet32Config):
     def __init__(self):
-      super(ResNet32AdamConfig, self).__init__()
+      super(ResNet32BaseRegConfig, self).__init__()
       self.wd = None
       self.data_aug = False
 
