@@ -234,25 +234,32 @@ class ResNetModel(object):
     return [1, stride, stride, 1]
 
   def _batch_norm(self, name, x):
-    """Batch normalization."""
-    with tf.variable_scope(name):
-      n_out = x.get_shape()[-1]
-      beta = nn.weight_variable(
-          [n_out], init_method="constant", init_param={"val": 0.0}, name="beta")
-      gamma = nn.weight_variable(
-          [n_out],
-          init_method="constant",
-          init_param={"val": 1.0},
-          name="gamma")
-      return nn.batch_norm(
-          x,
-          self.is_training,
-          gamma=gamma,
-          beta=beta,
-          axes=[0, 1, 2],
-          eps=1e-3,
-          scope="bn",
-          name="bn_out")
+    """
+    Batch normalization.
+
+    Only active if specified in config
+    """
+    if self.config.batch_norm:
+      with tf.variable_scope(name):
+        n_out = x.get_shape()[-1]
+        beta = nn.weight_variable(
+            [n_out], init_method="constant", init_param={"val": 0.0}, name="beta")
+        gamma = nn.weight_variable(
+            [n_out],
+            init_method="constant",
+            init_param={"val": 1.0},
+            name="gamma")
+        return nn.batch_norm(
+            x,
+            self.is_training,
+            gamma=gamma,
+            beta=beta,
+            axes=[0, 1, 2],
+            eps=1e-3,
+            scope="bn",
+            name="bn_out")
+    else:
+      return x
 
   def _residual(self,
                 x,
