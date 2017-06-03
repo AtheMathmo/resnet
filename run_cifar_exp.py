@@ -52,6 +52,7 @@ flags.DEFINE_string("logs", "./logs/public", "Logging folder.")
 flags.DEFINE_string("model", "resnet-32", "Model type.")
 flags.DEFINE_float("jac_reg", None, "Jac regularization scale")
 flags.DEFINE_string("reg_type", "stoch", "Jac regularization type")
+flags.DEFINE_bool("data_aug", None, "Data augmentation override.")
 flags.DEFINE_bool("validation", False, "Whether run validation set.")
 FLAGS = flags.FLAGS
 
@@ -64,6 +65,8 @@ def _get_config():
     config = get_config(FLAGS.dataset, FLAGS.model)
   config.jac_reg = FLAGS.jac_reg
   config.reg_type = FLAGS.reg_type
+  if FLAGS.data_aug is not None:
+    config.data_aug = FLAGS.data_aug
   return config
 
 

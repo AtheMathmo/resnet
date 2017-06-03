@@ -48,6 +48,7 @@ class ResNet32Config(object):
     self.wd = 2e-4
     # self.relu_leakiness = 0.1   # Original TF model has leaky relu.
     self.relu_leakiness = 0.0
+    self.batch_norm = True
     self.optimizer = "mom"
     self.max_train_iter = 80000
     self.lr_scheduler_type = 'fixed'
@@ -112,6 +113,7 @@ class ResNet32BaseRegConfig(ResNet32Config):
       super(ResNet32BaseRegConfig, self).__init__()
       self.wd = None
       self.data_aug = False
+      self.batch_norm = False
 
 def get_config_from_json(path):
   return ResNet32Config.from_json(open(path, "r").read())
