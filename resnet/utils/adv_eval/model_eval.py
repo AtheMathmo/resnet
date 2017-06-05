@@ -93,16 +93,16 @@ def eval_jacobian_things(sess, model, imgs, targets):
 
     return logit_jac_norm, dbp_norm
 
-def adv_eval(sess, model, data_iter, eps_range=[0.1], logger=None):
-    for norm in [np.inf, 1, 2]:
-        for fgs_eps in eps_range:
+def adv_eval(sess, model, data_iter, fgm_settings={np.inf: [0.1]}, logger=None):
+    for norm in fgm_settings:
+        for eps in fgm_settings[norm]:
             data_iter.reset()
-            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, fgs_eps, norm)
+            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, eps, norm)
 
             if logger is not None:
-                logger.log_adv_stats(norm, fgs_eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
+                logger.log_adv_stats(norm, eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
 
-            print("------- For norm = {}, eps = {} -------".format(norm, fgs_eps))
+            print("------- For norm = {}, eps = {} -------".format(norm, eps))
             print("Untargeted FGS pred acc: ", untarget_fgs_acc)
             print("Targeted FGS pred acc:", targeted_pred_acc)
             print("Targeted FGS attack success:", targeted_success_rate)

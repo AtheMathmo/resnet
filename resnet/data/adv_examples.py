@@ -36,6 +36,7 @@ def save_adv_examples(sess, model, data_iter, logger, fgm_settings={np.inf: [0.1
     '''
     for norm in fgm_settings:
         for eps in fgm_settings[norm]:
+            data_iter.reset()
             adv_examples, labels, _ = gen_adv_examples(sess, model, data_iter,
                                                        fgm(model.input, model.output, eps=eps, ord=norm))
             logger.log_adv_examples(adv_examples, labels, eps, norm)
@@ -46,5 +47,8 @@ def save_adv_examples(sess, model, data_iter, logger, fgm_settings={np.inf: [0.1
             adv_examples, labels, targets = gen_adv_examples(sess, model, data_iter,
                                                              fgm_target(model.input, model.output, model.label, eps=eps, ord=norm))
             logger.log_adv_examples(adv_examples, labels, eps, norm, targets)
+
+def load_adv_examples():
+    pass
 
 

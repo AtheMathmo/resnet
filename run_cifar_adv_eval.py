@@ -25,6 +25,12 @@ flags.DEFINE_string("mode", "eval", "Run mode. 'eval' or 'save'")
 FLAGS = tf.flags.FLAGS
 log = logger.get()
 
+FGM_SETTINGS = {
+    np.inf: [0.0, 1e-3, 1e-2, 0.1, 1.0, 10.0],
+    1: [0.1, 0.5, 1.0, 3.0, 5.0, 7.0, 10.0, 30.0, 70.0, 100.0, 300.0, 500.0],
+    2: [0.01, 0.03, 0.05, 0.1, 0.3, 0.5, 0.7, 1.0, 5.0, 10.0, 50.0, 100.0]
+}
+
 def _get_config():
   # Manually set config.
   if FLAGS.config is not None:
@@ -116,7 +122,7 @@ def only_adv_eval(config, train_data, test_data, save_folder, logs_folder=None):
             ckpt = tf.train.latest_checkpoint(save_folder)
             # log.fatal(ckpt)
             saver.restore(sess, ckpt)
-            adv_eval(sess, mvalid, test_data, eps_range=[0.0,1e-5,1e-4,1e-3,1e-2,1e-1,1.0,10.0,100.0], logger=adv_logger)
+            adv_eval(sess, mvalid, test_data, FGM_SETTINGS, logger=adv_logger)
 
 def gen_and_save_adv_examples(config, test_data, save_folder, logs_folder=None):
     log.info("Config: {}".format(config.__dict__))
@@ -130,12 +136,6 @@ def gen_and_save_adv_examples(config, test_data, save_folder, logs_folder=None):
         log.info("Building models")
         mvalid = get_model(config)
 
-        fgm_settings = {
-            np.inf: [0.0, 1e-3, 1e-2, 0.1, 1.0, 10.0],
-            1: [0.1, 0.5, 1.0, 3.0, 5.0, 7.0, 10.0, 30.0, 70.0, 100.0, 300.0, 500.0],
-            2: [0.01, 0.03, 0.05, 0.1, 0.3, 0.5, 0.7, 1.0, 5.0, 10.0, 50.0, 100.0]
-        }
-
         # Initializes variables.
         with tf.Session() as sess:
             # saver = tf.train.Saver(var_dict)
@@ -143,7 +143,7 @@ def gen_and_save_adv_examples(config, test_data, save_folder, logs_folder=None):
             ckpt = tf.train.latest_checkpoint(save_folder)
             # log.fatal(ckpt)
             saver.restore(sess, ckpt)
-            save_adv_examples(sess, mvalid, test_data, adv_logger, fgm_settings=fgm_settings)
+            save_adv_examples(sess, mvalid, test_data, adv_logger, fgm_settings=FGM_SETTINGS)
 
 def main():
   config = _get_config()
