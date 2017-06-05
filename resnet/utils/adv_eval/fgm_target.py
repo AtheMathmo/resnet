@@ -3,6 +3,7 @@ sys.path.append('./cleverhans')
 import cleverhans.utils_tf
 
 import tensorflow as tf
+import numpy as np
 
 
 def fgm_target(x, preds, y, eps=0.3, ord=np.inf, clip_min=None, clip_max=None):

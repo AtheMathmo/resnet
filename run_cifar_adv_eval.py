@@ -118,7 +118,7 @@ def only_adv_eval(config, train_data, test_data, save_folder, logs_folder=None):
             saver.restore(sess, ckpt)
             adv_eval(sess, mvalid, test_data, eps_range=[0.0,1e-5,1e-4,1e-3,1e-2,1e-1,1.0,10.0,100.0], logger=adv_logger)
 
-def gen_and_save_adv_examples(config, test_data, logs_folder=None):
+def gen_and_save_adv_examples(config, test_data, save_folder, logs_folder=None):
     log.info("Config: {}".format(config.__dict__))
     adv_logger = AdvLogger(logs_folder)
 
@@ -143,7 +143,7 @@ def gen_and_save_adv_examples(config, test_data, logs_folder=None):
             ckpt = tf.train.latest_checkpoint(save_folder)
             # log.fatal(ckpt)
             saver.restore(sess, ckpt)
-            save_adv_examples(sess, mvalid, test_data, adv_logger, fgm_settings=fgm_settings):
+            save_adv_examples(sess, mvalid, test_data, adv_logger, fgm_settings=fgm_settings)
 
 def main():
   config = _get_config()
@@ -177,7 +177,7 @@ def main():
   if FLAGS.mode.lower() == 'eval':
     only_adv_eval(config, train_data, test_data, save_folder, logs_folder)
   elif FLAGS.mode.lower() == 'save':
-      gen_and_save_adv_examples(config, test_data, logs_folder)
+      gen_and_save_adv_examples(config, test_data, save_folder, logs_folder)
 
 
 if __name__ == "__main__":

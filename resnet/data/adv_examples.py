@@ -1,9 +1,11 @@
 import os
 
+import sys
+sys.path.append('./cleverhans')
 from cleverhans.attacks_tf import fgm
 import numpy as np
 
-from utils.adv_eval import fgm_target
+from resnet.utils.adv_eval.fgm_target import fgm_target
 
 def permute_labels(labels):
     true_labels = labels
@@ -18,7 +20,7 @@ def gen_adv_examples(sess, model, data_iter, adv_attack):
     for batch in iter_:
         adv_targets = permute_labels(batch["label"])
         adv_examples.append(sess.run(adv_attack, {
-            model.input: batch["img"]
+            model.input: batch["img"],
             model.label: adv_targets
         }))
         labels.append(batch["label"])
