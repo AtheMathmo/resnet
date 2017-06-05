@@ -7,6 +7,8 @@ import sys
 
 from resnet.utils import logger
 
+import numpy as np
+
 log = logger.get()
 
 
@@ -96,9 +98,10 @@ class AdvLogger():
 
       if self._write_to_csv:
           self.adv_atk_filename = os.path.join(logs_folder, 'adv_atk_stats.csv')
+          self.adv_examples_folder = os.path.join(logs_folder, 'adv_examples')
 
-          if not os.path.isdir(logs_folder):
-              os.makedirs(logs_folder)
+          if not os.path.isdir(self.adv_examples_folder):
+              os.makedirs(self.adv_examples_folder)
 
           if not os.path.exists(self.adv_atk_filename):
               with open(self.adv_atk_filename, "w") as f:
@@ -110,3 +113,15 @@ class AdvLogger():
               eps, untarget_acc, target_acc, target_atk_success, norm
           ))
 
+    def log_adv_examples(self, adv_examples, true_labels, fgs_eps, fgs_norm, target_labels=None):
+        if target_labels is not None:
+          np.savetxt('targets_t_{}_{}'.format(fgs_norm, fgs_eps), target_labels)
+          ex_filename = 'adv_examples_t_{}_{}'.format(fgs_norm, fgs_eps)
+          labels_filename = 'labels_t_{}_{}'.format(fgs_norm, fgs_eps)
+        else:
+          ex_filename = 'adv_examples_{}_{}'.format(fgs_norm, fgs_eps)
+          labels_filename = 'labels_{}_{}'.format(fgs_norm, fgs_eps)
+        np.savetxt(ex_filename, adv_examples)
+        np.savetxt(labels_filename, true_labels)
+
+        
