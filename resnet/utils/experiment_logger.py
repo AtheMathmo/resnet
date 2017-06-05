@@ -116,16 +116,16 @@ class AdvLogger():
     def log_adv_examples(self, adv_examples, true_labels, fgs_eps, fgs_norm, target_labels=None):
         if target_labels is not None:
           targets_filename = os.path.join(self.adv_examples_folder,
-                                          'targets_t_{}_{}.csv'.format(fgs_norm, fgs_eps))
-          np.savetxt(targets_filename, target_labels, delimiter=','))
+                                          'targets_t_{}_{}'.format(fgs_norm, fgs_eps))
+          np.save(targets_filename, target_labels)
           ex_filename = os.path.join(self.adv_examples_folder,
-                                     'adv_examples_t_{}_{}.csv'.format(fgs_norm, fgs_eps))
+                                     'adv_examples_t_{}_{}'.format(fgs_norm, fgs_eps))
           labels_filename = os.path.join(self.adv_examples_folder,
-                                         'labels_t_{}_{}.csv'.format(fgs_norm, fgs_eps))
+                                         'labels_t_{}_{}'.format(fgs_norm, fgs_eps))
         else:
           ex_filename = os.path.join(self.adv_examples_folder,
-                                     'adv_examples_{}_{}.csv'.format(fgs_norm, fgs_eps))
+                                     'adv_examples_{}_{}'.format(fgs_norm, fgs_eps))
           labels_filename = os.path.join(self.adv_examples_folder,
-                                         'labels_{}_{}.csv'.format(fgs_norm, fgs_eps))
-        np.savetxt(ex_filename, adv_examples, delimiter=',')
-        np.savetxt(labels_filename, true_labels, delimiter=',')
+                                         'labels_{}_{}'.format(fgs_norm, fgs_eps))
+        np.save(ex_filename, adv_examples)
+        np.save(labels_filename, true_labels)
