@@ -3,7 +3,9 @@ import os
 import sys
 sys.path.append('./cleverhans')
 from cleverhans.attacks_tf import fgm
+
 import numpy as np
+from tqdm import tqdm
 
 from resnet.utils.adv_eval.fgm_target import fgm_target
 
