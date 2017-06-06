@@ -81,7 +81,7 @@ def deepfool_eval(model, imgs, delta=0.2):
 
     v = universal_perturbation(imgs, f, f_grad, delta=delta)
 
-def eval_jacobian_things(sess, model, imgs, targets):
+def eval_jacobian_things(sess, model, dataset, imgs, targets, logger=None):
     logit_jac_norm = sess.run(model.true_jac_norm, {
         model.input: imgs
     })
@@ -91,13 +91,16 @@ def eval_jacobian_things(sess, model, imgs, targets):
         model.label: targets
     })
 
+    if logger is not None:
+        logger.log_jacobian(dataset, logit_jac_norm, dbp_norm)
+
     return logit_jac_norm, dbp_norm
 
-def adv_eval(sess, model, data_iter, fgm_settings={np.inf: [0.1]}, logger=None):
+def adv_eval(sess, model, train_data, test_data, fgm_settings={np.inf: [0.1]}, logger=None):
     for norm in fgm_settings:
         for eps in fgm_settings[norm]:
-            data_iter.reset()
-            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, data_iter, eps, norm)
+            test_data.reset()
+            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, test_data, eps, norm)
 
             if logger is not None:
                 logger.log_adv_stats(norm, eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
@@ -107,6 +110,13 @@ def adv_eval(sess, model, data_iter, fgm_settings={np.inf: [0.1]}, logger=None):
             print("Targeted FGS pred acc:", targeted_pred_acc)
             print("Targeted FGS attack success:", targeted_success_rate)
 
-    data_iter.reset()
-    res = data_iter.get_fn(np.arange(100))
-    print(eval_jacobian_things(sess, model, res["img"], res["label"]))
+    # Evaluate the model Jacobian
+    test_data.reset()
+    test_samples = test_data.get_fn(np.arange(100))
+
+    train_data.reset()
+    train_samples = train_data.get_fn(np.arange(100))
+
+    eval_jacobian_things(sess, model, 'test', test_samples["img"], test_samples["label"])
+    eval_jacobian_things(sess, model, 'train', train_samples["img"], train_samples["label"])
+

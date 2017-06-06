@@ -99,6 +99,7 @@ class AdvLogger():
       if self._write_to_csv:
           self.adv_atk_filename = os.path.join(logs_folder, 'adv_atk_stats.csv')
           self.adv_examples_folder = os.path.join(logs_folder, 'adv_examples')
+          self.jac_values_filename = os.path.join(logs_folder, 'jacobian.csv')
 
           if not os.path.isdir(self.adv_examples_folder):
               os.makedirs(self.adv_examples_folder)
@@ -107,10 +108,20 @@ class AdvLogger():
               with open(self.adv_atk_filename, "w") as f:
                   f.write("eps,untarget_acc,target_acc,target_atk_success,norm\n")
 
+          if not os.path.exists(self.adv_atk_filename):
+              with open(self.jac_values_filename, "w") as f:
+                  f.write("data,logit_jac,dbp_loss\n")
+
     def log_adv_stats(self, norm, eps, untarget_acc, target_acc, target_atk_success):
         with open(self.adv_atk_filename, "a") as f:
           f.write("{},{},{},{},{}\n".format(
               eps, untarget_acc, target_acc, target_atk_success, norm
+          ))
+
+    def log_jacobian_values(self, data, logit_jac, dbp_loss):
+        with open(self.adv_atk_filename, "a") as f:
+          f.write("{},{},{}\n".format(
+              data, logit_jac, dbp_loss
           ))
 
     def log_adv_examples(self, adv_examples, true_labels, fgs_eps, fgs_norm, target_labels=None):
