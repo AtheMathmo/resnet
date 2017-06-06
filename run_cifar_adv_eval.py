@@ -164,7 +164,10 @@ def main():
   log.info("Building dataset")
   train_data = get_dataset(
       FLAGS.dataset,
-      "train")
+      "train",
+      cycle=False,
+      data_aug=False,
+      prefetch=False)
   test_data = get_dataset(
       FLAGS.dataset,
       "test",
