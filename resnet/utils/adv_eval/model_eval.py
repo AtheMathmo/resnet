@@ -3,12 +3,13 @@ import sys
 import numpy as np
 
 sys.path.append('./cleverhans')
-from cleverhans.attacks_tf import fgsm, fgm
+from cleverhans.attacks_tf import fgm
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 
 from universal_pert import universal_perturbation
+from fgm_target import fgm_target
 
 def permute_labels(labels):
     true_labels = labels #np.argmax(labels, axis=1)
@@ -17,40 +18,35 @@ def permute_labels(labels):
     # one_hot[np.arange(labels.shape[0]), adv_labels] = 1.0
     # return one_hot
 
-def target_fgs_attack(model, fgs_eps, clip_min, clip_max):
-    adv_ce = tf.reduce_mean(
-        tf.nn.sparse_softmax_cross_entropy_with_logits(labels=model.label, logits=model.logits))
-    input_grad = tf.gradients(adv_ce, model.input)[0]
-    return model.input - fgs_eps * tf.sign(input_grad)
-
-def fgs_eval(sess, model, data_iter, fgs_eps, norm=np.inf):
+def fgs_eval(sess, model, data_iter, fgm_eps, norm=np.inf, logger=None):
     '''
-    Returns (untargeted_fgs_acc, targeted_fgs_acc)
+    Returns (untargeted_fgs_acc, targeted_fgs_acc, targeted_atk_success_rate)
     '''
     untarget_num_correct = 0.0
     target_num_correct = 0.0
     target_atk_success = 0.0
     total_count = 0
     iter_ = tqdm(data_iter)
-    fgsm_attack = fgm(model.input, model.output, eps=fgs_eps, ord=norm)
-    targeted_fgsm_attack = target_fgs_attack(model, fgs_eps, 0.0, 255.0)
+    fgm_attack = fgm(model.input, model.output, eps=fgm_eps, ord=norm)
+    targeted_fgm_attack = fgm_target(model.input, model.output, model.label, eps=fgm_eps, ord=norm)
 
     for batch in iter_:
         target_labels = permute_labels(batch["label"])
         # Try to perturb with cleverhans (untargeted)
-        perturbed_imgs_fgs = sess.run(fgsm_attack, {
+        perturbed_imgs_fgm = sess.run(fgm_attack, {
             model.input: batch["img"]
         })
-        targeted_fgs_imgs = sess.run(targeted_fgsm_attack, {
+        targeted_fgm_imgs = sess.run(targeted_fgm_attack, {
             model.input: batch["img"],
             model.label: target_labels
         })
         y_untarget = sess.run(model.output, {
-            model.input: perturbed_imgs_fgs
+            model.input: perturbed_imgs_fgm
         })
         y_targeted = sess.run(model.output, {
-            model.input: targeted_fgs_imgs
+            model.input: targeted_fgm_imgs
         })
+
         untarget_pred_label = np.argmax(y_untarget, axis=1)
         target_pred_label = np.argmax(y_targeted, axis=1)
         untarget_num_correct += np.sum(np.equal(untarget_pred_label, batch["label"]).astype(float))
@@ -66,6 +62,7 @@ def fgs_eval(sess, model, data_iter, fgs_eps, norm=np.inf):
     # untargeted_pred_acc = model.predictive_accuracy(perturbed_imgs_fgs, labels)
     # targeted_pred_acc = model.predictive_accuracy(target_perturbed_imgs_fgs, target_labels)
 
+    logger.log_adv_stats(norm, fgm_eps, untargeted_pred_acc, targeted_pred_acc, targeted_success_rate)
     return (untargeted_pred_acc, targeted_pred_acc, targeted_success_rate)
 
 def deepfool_eval(model, imgs, delta=0.2):
@@ -100,10 +97,7 @@ def adv_eval(sess, model, train_data, test_data, fgm_settings={np.inf: [0.1]}, l
     for norm in fgm_settings:
         for eps in fgm_settings[norm]:
             test_data.reset()
-            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, test_data, eps, norm)
-
-            if logger is not None:
-                logger.log_adv_stats(norm, eps, untarget_fgs_acc, targeted_pred_acc, targeted_success_rate)
+            untarget_fgs_acc, targeted_pred_acc, targeted_success_rate = fgs_eval(sess, model, test_data, eps, norm, logger=logger)
 
             print("------- For norm = {}, eps = {} -------".format(norm, eps))
             print("Untargeted FGS pred acc: ", untarget_fgs_acc)
