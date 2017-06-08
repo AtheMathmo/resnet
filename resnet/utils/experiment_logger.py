@@ -118,7 +118,7 @@ class AdvLogger():
               eps, untarget_acc, target_acc, target_atk_success, norm
           ))
 
-    def log_jacobian_values(self, data, logit_jac, dbp_loss):
+    def log_jacobian(self, data, logit_jac, dbp_loss):
         with open(self.jac_values_filename, "a") as f:
           f.write("{},{},{}\n".format(
               data, logit_jac, dbp_loss
