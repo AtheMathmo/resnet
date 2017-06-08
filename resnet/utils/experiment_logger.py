@@ -108,7 +108,7 @@ class AdvLogger():
               with open(self.adv_atk_filename, "w") as f:
                   f.write("eps,untarget_acc,target_acc,target_atk_success,norm\n")
 
-          if not os.path.exists(self.adv_atk_filename):
+          if not os.path.exists(self.jac_values_filename):
               with open(self.jac_values_filename, "w") as f:
                   f.write("data,logit_jac,dbp_loss\n")
 
@@ -119,7 +119,7 @@ class AdvLogger():
           ))
 
     def log_jacobian_values(self, data, logit_jac, dbp_loss):
-        with open(self.adv_atk_filename, "a") as f:
+        with open(self.jac_values_filename, "a") as f:
           f.write("{},{},{}\n".format(
               data, logit_jac, dbp_loss
           ))

@@ -111,6 +111,6 @@ def adv_eval(sess, model, train_data, test_data, fgm_settings={np.inf: [0.1]}, l
     train_data.reset()
     train_samples = train_data.get_fn(np.arange(100))
 
-    eval_jacobian_things(sess, model, 'test', test_samples["img"], test_samples["label"])
-    eval_jacobian_things(sess, model, 'train', train_samples["img"], train_samples["label"])
+    eval_jacobian_things(sess, model, 'test', test_samples["img"], test_samples["label"], logger=logger)
+    eval_jacobian_things(sess, model, 'train', train_samples["img"], train_samples["label"], logger=logger)
 
