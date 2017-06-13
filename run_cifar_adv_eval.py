@@ -167,7 +167,7 @@ def transfer_adv_examples(config, adv_examples, save_folder, logs_folder):
             ckpt = tf.train.latest_checkpoint(save_folder)
             # log.fatal(ckpt)
             saver.restore(sess, ckpt)
-            eval_adv_examples(sess, mvalid, adv_examples, FLAGS.bbox_id, adv_logger)
+            eval_adv_examples(sess, mvalid, adv_examples, FLAGS.bbox_id, FLAGS.fgm_eps, FLAGS.fgm_norm, adv_logger)
 
 
 def main():

@@ -107,7 +107,7 @@ class AdvLogger():
 
           if not os.path.exists(self.transfer_adv_stats):
               with open(self.transfer_adv_stats, "w") as f:
-                  f.write("source_name,pred_acc,target_success\n")
+                  f.write("source_name,eps,norm,pred_acc,target_success\n")
 
           if not os.path.exists(self.jac_values_filename):
               with open(self.jac_values_filename, "w") as f:
@@ -125,8 +125,8 @@ class AdvLogger():
               data, logit_jac, dbp_loss
           ))
 
-    def log_transfer_adv_stats(self, source_name, pred_acc, target_success):
+    def log_transfer_adv_stats(self, source_name, eps, norm, pred_acc, target_success):
         with open(self.transfer_adv_stats, "a") as f:
-          f.write("{},{},{}\n".format(
-              source_name, pred_acc, target_success
+          f.write("{},{},{},{},{}\n".format(
+              source_name, eps, norm, pred_acc, target_success
           ))

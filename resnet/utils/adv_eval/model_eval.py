@@ -18,7 +18,7 @@ def permute_labels(labels):
     # one_hot[np.arange(labels.shape[0]), adv_labels] = 1.0
     # return one_hot
 
-def eval_adv_examples(sess, model, examples_iter, source_name, logger=None):
+def eval_adv_examples(sess, model, examples_iter, source_name, eps, norm, logger=None):
     num_correct = 0.0
     num_target_success = 0.0
     num_successful_target = 0.0
@@ -47,7 +47,7 @@ def eval_adv_examples(sess, model, examples_iter, source_name, logger=None):
         target_success = None
 
     if logger is not None:
-        logger.log_transfer_adv_stats(source_name, pred_acc, target_success)
+        logger.log_transfer_adv_stats(source_name, eps, norm, pred_acc, target_success)
     else:
         print("Predictive Acc: {}    Target Success Rate: {}".format(pred_acc, target_success))
 
