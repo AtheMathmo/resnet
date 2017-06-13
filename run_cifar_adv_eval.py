@@ -23,6 +23,9 @@ flags.DEFINE_string("config", None, "Custom JSON config file")
 flags.DEFINE_string("model", "resnet-32", "Model type.")
 flags.DEFINE_string("mode", "eval", "Run mode. 'eval' or 'save'")
 flags.DEFINE_string("bbox_id", None, "ID of blackbox model to source attacks from")
+flags.DEFINE_float("fgm_eps", 1.0, "FGM eps of source attack")
+flags.DEFINE_float("fgm_norm", np.inf, "FGM norm of source attack")
+flags.DEFINE_bool("targeted", False, "Whether source attack should be targeted")
 FLAGS = tf.flags.FLAGS
 log = logger.get()
 
@@ -207,7 +210,7 @@ def main():
     assert FLAGS.bbox_id is not None
     bbox_save_folder = os.path.realpath(
                         os.path.abspath(os.path.join(FLAGS.results, FLAGS.bbox_id)))
-    adv_examples = load_adv_examples(bbox_save_folder, 1.0, np.inf, False)
+    adv_examples = load_adv_examples(bbox_save_folder, FLAGS.fgm_eps, FLAGS.fgm_norm, FLAGS.targeted)
     transfer_adv_examples(config, adv_examples, save_folder, logs_folder)
 
 if __name__ == "__main__":
