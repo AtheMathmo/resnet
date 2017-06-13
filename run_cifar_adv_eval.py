@@ -90,7 +90,7 @@ def eval_model(config, train_data, test_data, save_folder, logs_folder=None):
 
       # evaluate adversarial robustness
       test_data.reset()
-      adv_eval(sess, mvalid, test_data, logger=adv_logger)
+      adv_eval(sess, mvalid, train_data, test_data, logger=adv_logger)
 
       niter = int(ckpt.split("-")[-1])
       exp_logger.log_train_acc(niter, train_acc)
@@ -207,7 +207,8 @@ def main():
     assert FLAGS.bbox_id is not None
     bbox_save_folder = os.path.realpath(
                         os.path.abspath(os.path.join(FLAGS.results, FLAGS.bbox_id)))
-    adv_examples = load_adv_examples(bbox_save_folder, 0.3, np.inf, False)
+    adv_examples = load_adv_examples(bbox_save_folder, 1.0, np.inf, False)
+    transfer_adv_examples(config, adv_examples, save_folder, logs_folder)
 
 if __name__ == "__main__":
     main()

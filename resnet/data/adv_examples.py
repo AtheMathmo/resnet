@@ -30,7 +30,7 @@ def gen_adv_examples(sess, model, data_iter, adv_attack):
         labels.append(batch["label"])
         target_labels.append(adv_targets)
 
-    return (np.array(adv_examples), np.array(labels), np.array(target_labels))
+    return (np.concatenate(adv_examples), np.concatenate(labels), np.concatenate(target_labels))
 
 def save_adv_examples(sess, model, data_iter, save_folder, fgm_settings={np.inf: [0.1]}):
     '''
@@ -74,22 +74,22 @@ def _save_adv_examples(folder, adv_examples, true_labels, fgs_eps, fgs_norm, tar
 
 
 def load_adv_examples(save_folder, fgm_eps, fgm_norm, targeted=False):
-    examples_folder = os.path.join(save_folder, 'adv_examples')
+    folder = os.path.join(save_folder, 'adv_examples')
     if targeted:
         targets_path = os.path.join(folder,
-                                    'targets_t_{}_{}'.format(fgm_norm, fgm_eps))
+                                    'targets_t_{}_{}.npy'.format(fgm_norm, fgm_eps))
         examples_path = os.path.join(folder,
-                                     'adv_examples_t_{}_{}'.format(fgm_norm, fgm_eps))
+                                     'adv_examples_t_{}_{}.npy'.format(fgm_norm, fgm_eps))
         labels_filename = os.path.join(folder,
-                                       'labels_t_{}_{}'.format(fgm_norm, fgm_eps))
+                                       'labels_t_{}_{}.npy'.format(fgm_norm, fgm_eps))
         targets = np.load(targets_path)
         examples = np.load(examples_path)
         labels = np.load(labels_filename)
     else:
         examples_path = os.path.join(folder,
-                                     'adv_examples_{}_{}'.format(fgm_norm, fgm_eps))
+                                     'adv_examples_{}_{}.npy'.format(fgm_norm, fgm_eps))
         labels_filename = os.path.join(folder,
-                                       'labels_{}_{}'.format(fgm_norm, fgm_eps))
+                                       'labels_{}_{}.npy'.format(fgm_norm, fgm_eps))
         examples = np.load(examples_path)
         labels = np.load(labels_filename)
         targets = None
