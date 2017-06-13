@@ -22,7 +22,7 @@ def eval_adv_examples(sess, model, examples_iter, source_name, logger=None):
     num_correct = 0.0
     num_target_success = 0.0
     num_successful_target = 0.0
-    total_count = 0
+    total_count = 0.0
 
     targeted = False
 
@@ -34,7 +34,7 @@ def eval_adv_examples(sess, model, examples_iter, source_name, logger=None):
         })
         pred_label = np.argmax(y, axis=1)
 
-        total_count += pred_label.shape[0].astype(float)
+        total_count += pred_label.shape[0]
         num_correct += np.sum(np.equal(pred_label, batch["label"]).astype(float))
         if batch["target"] is not None:
             num_successful_target += np.sum(np.equal(pred_label, batch["target"]).astype(float))
