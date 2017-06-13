@@ -9,10 +9,10 @@ from tqdm import tqdm
 
 from resnet.configs.cifar_exp_config import get_config, get_config_from_json
 from resnet.data import get_dataset
-from resnet.data.adv_examples import save_adv_examples
+from resnet.data.adv_examples import save_adv_examples, load_adv_examples
 from resnet.models import ResNetModel
 from resnet.utils import ExperimentLogger, AdvLogger, logger
-from resnet.utils.adv_eval.model_eval import adv_eval
+from resnet.utils.adv_eval.model_eval import adv_eval, eval_adv_examples
 
 flags = tf.flags
 flags.DEFINE_string("id", None, "eExperiment ID")
@@ -22,6 +22,7 @@ flags.DEFINE_string("logs", "./logs/public", "Logging folder")
 flags.DEFINE_string("config", None, "Custom JSON config file")
 flags.DEFINE_string("model", "resnet-32", "Model type.")
 flags.DEFINE_string("mode", "eval", "Run mode. 'eval' or 'save'")
+flags.DEFINE_string("bbox_id", None, "ID of blackbox model to source attacks from")
 FLAGS = tf.flags.FLAGS
 log = logger.get()
 
@@ -126,6 +127,26 @@ def only_adv_eval(config, train_data, test_data, save_folder, logs_folder=None):
 
 def gen_and_save_adv_examples(config, test_data, save_folder, logs_folder=None):
     log.info("Config: {}".format(config.__dict__))
+
+    with tf.Graph().as_default():
+        np.random.seed(0)
+        tf.set_random_seed(1234)
+
+        # Builds models.
+        log.info("Building models")
+        mvalid = get_model(config)
+
+        # Initializes variables.
+        with tf.Session() as sess:
+            # saver = tf.train.Saver(var_dict)
+            saver = tf.train.Saver()
+            ckpt = tf.train.latest_checkpoint(save_folder)
+            # log.fatal(ckpt)
+            saver.restore(sess, ckpt)
+            save_adv_examples(sess, mvalid, test_data, save_folder, fgm_settings=FGM_SETTINGS)
+
+def transfer_adv_examples(config, adv_examples, save_folder, logs_folder):
+    log.info("Config: {}".format(config.__dict__))
     adv_logger = AdvLogger(logs_folder)
 
     with tf.Graph().as_default():
@@ -143,7 +164,8 @@ def gen_and_save_adv_examples(config, test_data, save_folder, logs_folder=None):
             ckpt = tf.train.latest_checkpoint(save_folder)
             # log.fatal(ckpt)
             saver.restore(sess, ckpt)
-            save_adv_examples(sess, mvalid, test_data, adv_logger, fgm_settings=FGM_SETTINGS)
+            eval_adv_examples(sess, mvalid, adv_examples, FLAGS.bbox_id, adv_logger)
+
 
 def main():
   config = _get_config()
@@ -180,8 +202,12 @@ def main():
   if FLAGS.mode.lower() == 'eval':
     only_adv_eval(config, train_data, test_data, save_folder, logs_folder)
   elif FLAGS.mode.lower() == 'save':
-      gen_and_save_adv_examples(config, test_data, save_folder, logs_folder)
-
+    gen_and_save_adv_examples(config, test_data, save_folder, logs_folder)
+  elif FLAGS.mode.lower() == 'transfer':
+    assert FLAGS.bbox_id is not None
+    bbox_save_folder = os.path.realpath(
+                        os.path.abspath(os.path.join(FLAGS.results, FLAGS.bbox_id)))
+    adv_examples = load_adv_examples(bbox_save_folder, 0.3, np.inf, False)
 
 if __name__ == "__main__":
-  main()
+    main()

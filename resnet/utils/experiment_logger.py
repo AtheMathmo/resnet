@@ -98,15 +98,16 @@ class AdvLogger():
 
       if self._write_to_csv:
           self.adv_atk_filename = os.path.join(logs_folder, 'adv_atk_stats.csv')
-          self.adv_examples_folder = os.path.join(logs_folder, 'adv_examples')
+          self.transfer_adv_stats = os.path.join(logs_folder, 'transfer_adv_stats.csv')
           self.jac_values_filename = os.path.join(logs_folder, 'jacobian.csv')
-
-          if not os.path.isdir(self.adv_examples_folder):
-              os.makedirs(self.adv_examples_folder)
 
           if not os.path.exists(self.adv_atk_filename):
               with open(self.adv_atk_filename, "w") as f:
                   f.write("eps,untarget_acc,target_acc,target_atk_success,norm\n")
+
+          if not os.path.exists(self.transfer_adv_stats):
+              with open(self.transfer_adv_stats, "w") as f:
+                  f.write("source_name,pred_acc,target_success\n")
 
           if not os.path.exists(self.jac_values_filename):
               with open(self.jac_values_filename, "w") as f:
@@ -124,19 +125,8 @@ class AdvLogger():
               data, logit_jac, dbp_loss
           ))
 
-    def log_adv_examples(self, adv_examples, true_labels, fgs_eps, fgs_norm, target_labels=None):
-        if target_labels is not None:
-          targets_filename = os.path.join(self.adv_examples_folder,
-                                          'targets_t_{}_{}'.format(fgs_norm, fgs_eps))
-          np.save(targets_filename, target_labels)
-          ex_filename = os.path.join(self.adv_examples_folder,
-                                     'adv_examples_t_{}_{}'.format(fgs_norm, fgs_eps))
-          labels_filename = os.path.join(self.adv_examples_folder,
-                                         'labels_t_{}_{}'.format(fgs_norm, fgs_eps))
-        else:
-          ex_filename = os.path.join(self.adv_examples_folder,
-                                     'adv_examples_{}_{}'.format(fgs_norm, fgs_eps))
-          labels_filename = os.path.join(self.adv_examples_folder,
-                                         'labels_{}_{}'.format(fgs_norm, fgs_eps))
-        np.save(ex_filename, adv_examples)
-        np.save(labels_filename, true_labels)
+    def log_transfer_adv_stats(self, source_name, pred_acc, target_success):
+        with open(self.transfer_adv_stats, "a") as f:
+          f.write("{},{},{}\n".format(
+              source_name, pred_acc, target_success
+          ))

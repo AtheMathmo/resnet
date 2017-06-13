@@ -18,6 +18,39 @@ def permute_labels(labels):
     # one_hot[np.arange(labels.shape[0]), adv_labels] = 1.0
     # return one_hot
 
+def eval_adv_examples(sess, model, examples_iter, source_name, logger=None):
+    num_correct = 0.0
+    num_target_success = 0.0
+    num_successful_target = 0.0
+    total_count = 0
+
+    targeted = False
+
+    iter_ = tqdm(examples_iter)
+
+    for batch in iter_:
+        y = sess.run(model.output, {
+            model.input: batch["img"]
+        })
+        pred_label = np.argmax(y, axis=1)
+
+        total_count += pred_label.shape[0].astype(float)
+        num_correct += np.sum(np.equal(pred_label, batch["label"]).astype(float))
+        if batch["target"] is not None:
+            num_successful_target += np.sum(np.equal(pred_label, batch["target"]).astype(float))
+            targeted = True
+
+    pred_acc = num_correct / total_count
+    if targeted:
+        target_success = num_successful_target / total_count
+    else:
+        target_success = None
+
+    if logger is not None:
+        logger.log_transfer_adv_stats(source_name, pred_acc, target_success)
+    else:
+        print("Predictive Acc: {}    Target Success Rate: {}".format(pred_acc, target_success))
+
 def fgs_eval(sess, model, data_iter, fgm_eps, norm=np.inf, logger=None):
     '''
     Returns (untargeted_fgs_acc, targeted_fgs_acc, targeted_atk_success_rate)
@@ -113,4 +146,3 @@ def adv_eval(sess, model, train_data, test_data, fgm_settings={np.inf: [0.1]}, l
 
     eval_jacobian_things(sess, model, 'test', test_samples["img"], test_samples["label"], logger=logger)
     eval_jacobian_things(sess, model, 'train', train_samples["img"], train_samples["label"], logger=logger)
-
